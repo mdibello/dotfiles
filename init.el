@@ -50,6 +50,8 @@
   :init
   (ivy-rich-mode 1))
 
+(setq ivy-initial-inputs-alist nil)
+
 
 (use-package all-the-icons)
 
@@ -105,6 +107,8 @@
   (setq org-agenda-start-with-log-mode t)
   (setq org-log-done 'time)
   (setq org-log-into-drawer t))
+
+;; (setq-default gac-automatically-push-p t)
 
 
 ;;  :config
