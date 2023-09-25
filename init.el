@@ -49,7 +49,7 @@
 (use-package ivy-rich
   :init
   (ivy-rich-mode 1))
-
+(setq ivy-initial-inputs-alist nil)
 
 (use-package all-the-icons)
 
@@ -102,6 +102,7 @@
 (use-package org
   :hook (org-mode . mrd/org-mode-setup)
   :config
+  (setq org-pretty-entities t)
   (setq org-agenda-start-with-log-mode t)
   (setq org-log-done 'time)
   (setq org-log-into-drawer t))
