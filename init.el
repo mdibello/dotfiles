@@ -1,4 +1,8 @@
 (setq inhibit-startup-message t)
+(setq inhibit-splash-screen t)
+(setq inhibit-startup-message t)
+(setq initial-scratch-message "")
+;; (setq initial-buffer-choice (lambda () (org-agenda nil "a")))
 
 (scroll-bar-mode -1)  ; disable visible scrollbar
 (tool-bar-mode -1)    ; disable the toolbar
@@ -11,7 +15,6 @@
 
 ;; (set-face-attribute 'default nil :font "Fira Code Retina" :height 80)
 (set-face-attribute 'default nil :height 120)
-
 
 ;; Initialize package sources
 (require 'package)
@@ -32,7 +35,20 @@
 (setq use-package-always-ensure t)
       
 
+;; (use-package dashboard
+;;   :ensure t
+;;   :config
+;;   (dashboard-setup-startup-hook))
+
 ;; (use-package command-log-mode)
+
+;; treemacs
+(use-package treemacs
+  :ensure t
+  :bind("<f5>" . treemacs)
+  :custom
+  (treemacs-is-never-other-window t))
+(add-hook 'emacs-startup-hook 'treemacs)
 
 ;; Configure Ivy and Counsel
 (use-package counsel
@@ -52,8 +68,13 @@
 
 (setq ivy-initial-inputs-alist nil)
 
+(require 'nerd-icons)
+(use-package nerd-icons)
 
-(use-package all-the-icons)
+;; To configure fonts, run:
+;; M-x nerd-icons-install-fonts
+
+;; (use-package all-the-icons)
 
 ;; To configure fonts:
 ;; M-x all-the-icons-install-fonts
@@ -77,7 +98,8 @@
 (dolist (mode '(org-mode-hook
                 term-mode-hook
                 eshell-mode-hook
-                shell-mode-hook))
+                shell-mode-hook
+                treemacs-mode-hook))
   (add-hook mode (lambda() (display-line-numbers-mode 0))))
 
 
@@ -104,10 +126,14 @@
 (use-package org
   :hook (org-mode . mrd/org-mode-setup)
   :config
+  (setq org-pretty-entities t)
   (setq org-agenda-start-with-log-mode t)
   (setq org-log-done 'time)
-  (setq org-log-into-drawer t))
+  (setq org-log-into-drawer t)
+  (setq org-todo-keywords
+        '((sequence "TODO" "INVESTIGATING" "DEVELOPING" "QUALIFYING" "|" "DONE" "CANCELLED"))))
 
+;; (use-package git-auto-commit-mode)
 ;; (setq-default gac-automatically-push-p t)
 
 
@@ -120,8 +146,47 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ansi-color-names-vector
+   ["#292D3E" "#ff5370" "#c3e88d" "#ffcb6b" "#82aaff" "#c792ea" "#89DDFF" "#EEFFFF"])
+ '(custom-safe-themes
+   '("5f128efd37c6a87cd4ad8e8b7f2afaba425425524a68133ac0efd87291d05874" default))
+ '(exwm-floating-border-color "#232635")
+ '(fci-rule-color "#676E95")
+ '(gdb-non-stop-setting nil t)
+ '(highlight-tail-colors ((("#383f45") . 0) (("#323e51") . 20)))
+ '(jdee-db-active-breakpoint-face-colors (cons "#1c1f2b" "#c792ea"))
+ '(jdee-db-requested-breakpoint-face-colors (cons "#1c1f2b" "#c3e88d"))
+ '(jdee-db-spec-breakpoint-face-colors (cons "#1c1f2b" "#676E95"))
+ '(message-fill-column 100)
+ '(objed-cursor-color "#ff5370")
+ '(org-agenda-files '("/local-ssd/mdibello/docs/gecks.org"))
  '(package-selected-packages
-   '(which-key rainbow-delimiters doom-themes doom-modeline all-the-icons ivy-rich counsel use-package)))
+   '(treemacs git-auto-commit-mode which-key rainbow-delimiters doom-themes doom-modeline all-the-icons ivy-rich counsel use-package))
+ '(pdf-view-midnight-colors (cons "#EEFFFF" "#292D3E"))
+ '(rustic-ansi-faces
+   ["#292D3E" "#ff5370" "#c3e88d" "#ffcb6b" "#82aaff" "#c792ea" "#89DDFF" "#EEFFFF"])
+ '(vc-annotate-background "#292D3E")
+ '(vc-annotate-color-map
+   (list
+    (cons 20 "#c3e88d")
+    (cons 40 "#d7de81")
+    (cons 60 "#ebd476")
+    (cons 80 "#ffcb6b")
+    (cons 100 "#fcb66b")
+    (cons 120 "#f9a16b")
+    (cons 140 "#f78c6c")
+    (cons 160 "#e78e96")
+    (cons 180 "#d690c0")
+    (cons 200 "#c792ea")
+    (cons 220 "#d97dc1")
+    (cons 240 "#ec6898")
+    (cons 260 "#ff5370")
+    (cons 280 "#d95979")
+    (cons 300 "#b36082")
+    (cons 320 "#8d678b")
+    (cons 340 "#676E95")
+    (cons 360 "#676E95")))
+ '(vc-annotate-very-old-color nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
