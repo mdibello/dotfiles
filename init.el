@@ -13,8 +13,15 @@
 
 (setq visible-bell t)
 
-;; (set-face-attribute 'default nil :font "Fira Code Retina" :height 80)
-(set-face-attribute 'default nil :height 120)
+(set-face-attribute 'default nil :font "Fira Code Retina" :height 130)
+;; (set-face-attribute 'default nil :height 120)
+
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+;; (setopt
+;;  display-buffer-base-action
+;;  '((display-buffer-reuse-window display-buffer-same-window display-buffer-in-previous-window)
+;;    (reusable-frames . 0)))
 
 ;; Initialize package sources
 (require 'package)
@@ -47,26 +54,63 @@
   :ensure t
   :bind("<f5>" . treemacs)
   :custom
-  (treemacs-is-never-other-window t))
+  (treemacs-is-never-other-window t)
+  (treemacs-expand-after-init t)
+  (treemacs-position 'left))
 (add-hook 'emacs-startup-hook 'treemacs)
 
+;; Sidebar with open buffers
+(setq
+ sr-speedbar-width 50
+ sr-speedbar-max-width 50
+ sr-speedbar-right-side t
+ sr-speedbar-skip-other-window-p t
+ sr-speedbar-use-frame-root-window t)
+;; (global-set-key [f12] 'sr-speedbar-toggle)
+;; (sr-speedbar-open)
+;; (sr-speedbar-toggle)
+
 ;; Configure Ivy and Counsel
-(use-package counsel
-  :bind (("M-x" . counsel-M-x)
-         ("C-x b" . counsel-ibuffer)
-         ("C-x C-f" . counsel-find-file)
-         :map minibuffer-local-map
-         ("C-r" . 'counsel-minibuffer-history)))
+;; (use-package counsel
+;;   :bind (("M-x" . counsel-M-x)
+;;          ("C-x b" . counsel-ibuffer)
+;;          ("C-x C-f" . counsel-find-file)
+;;          :map minibuffer-local-map
+;;          ("C-r" . 'counsel-minibuffer-history)))
 
-(use-package ivy
+;; (use-package ivy
+;;   :config
+;;   (ivy-mode 1))
+
+;; (use-package ivy-rich
+;;   :init
+;;   (ivy-rich-mode 1))
+
+;; (setq ivy-initial-inputs-alist nil)
+
+
+;; helm
+(use-package helm
+  :bind (("M-x" . helm-M-x)
+         ("C-x C-f" . helm-find-files)
+         ("C-x b" . helm-mini))
   :config
-  (ivy-mode 1))
+  (setq helm-buffers-fuzzy-matching t)
+  (setq helm-recentf-fuzzy-match t))
 
-(use-package ivy-rich
-  :init
-  (ivy-rich-mode 1))
+;; Restrict helm to the bottom-third of the screen
+(use-package shackle
+  :ensure t
+  :after helm
+  :diminish
+  :config
+  (setq helm-display-function 'pop-to-buffer) ; make helm play nice
+  (setq shackle-rules '(("\\`\\*helm.*?\\*\\'"
+                         :regexp t
+                         :align t
+                         :size 0.3)))
+  (shackle-mode))
 
-(setq ivy-initial-inputs-alist nil)
 
 (require 'nerd-icons)
 (use-package nerd-icons)
@@ -132,6 +176,11 @@
   (setq org-log-into-drawer t)
   (setq org-todo-keywords
         '((sequence "TODO" "INVESTIGATING" "DEVELOPING" "QUALIFYING" "|" "DONE" "CANCELLED"))))
+
+(add-to-list 'org-entities-user
+            ;'(NAME LATEX MATH-MODE? HTML ASCII LATIN-1 UTF-8)
+             '("mapsto" "\\mapsto{}" t "&#8614;" "->" "->" "↦")
+             '("vdash" "\\vdash{}" t "&vdash;" "|-" "|-" "⊦"))
 
 ;; (use-package git-auto-commit-mode)
 ;; (setq-default gac-automatically-push-p t)
