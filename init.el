@@ -18,6 +18,8 @@
 
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
+(setq-default indent-tabs-mode nil)
+
 ;; (setopt
 ;;  display-buffer-base-action
 ;;  '((display-buffer-reuse-window display-buffer-same-window display-buffer-in-previous-window)
@@ -42,7 +44,8 @@
 
 (require 'use-package)
 (setq use-package-always-ensure t)
-      
+
+(use-package transpose-frame)
 
 ;; (use-package dashboard
 ;;   :ensure t
@@ -112,6 +115,36 @@
                          :align t
                          :size 0.3)))
   (shackle-mode))
+
+; (setf dired-kill-when-opening-new-dired-buffer t)
+;; (setq delete-by-moving-to-trash t)
+;; (setq load-prefer-newer t)
+;; (put 'dired-find-alternate-file 'disabled nil)
+;; (add-hook dired-mode-hook (lambda()
+;; 			    (local-set-key (kbd "<mouse-2>") #'dired-find-alternate-file)
+;; 			    (local-set-key (kbd "RET") #'dired-find-alternate-file)
+;; 			    (local-set-key (kbd "^")
+;; 					   (lambda () (interactive) (find-alternate-file "..")))))
+
+(defun open-project ()
+  (interactive)
+  (projectile-dired)
+  (magit-status))
+
+(use-package projectile
+  :diminish projectile-mode
+  :config (projectile-mode)
+  :custom ((projectile-completion-system 'helm))
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :init
+  (setq projectile-project-search-path '("~/repositories"))
+  (setq projectile-switch-project-action #'open-project)
+  )
+
+(use-package helm-projectile
+  :ensure t
+  :init (helm-projectile-on))
 
 
 (require 'nerd-icons)
@@ -242,7 +275,7 @@
         ;; === TODO ===
         ;; Todo -> todo.org, under date
         ("t" "Todo" entry
-         (file+dateline "~/docs/todo.org")
+         (file+datetree "~/docs/todo.org")
          "* TODO %?")
 
         ;; === OTHER NOTES ===
