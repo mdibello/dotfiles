@@ -2,7 +2,7 @@
 (setq inhibit-splash-screen t)
 (setq inhibit-startup-message t)
 (setq initial-scratch-message "")
-;; (setq initial-buffer-choice (lambda () (org-agenda nil "a")))
+;; (setq initial-buffer-choice (lambda () (org-todo-list)))
 
 (scroll-bar-mode -1)  ; disable visible scrollbar
 (tool-bar-mode -1)    ; disable the toolbar
@@ -22,6 +22,8 @@
      '((display-buffer-reuse-window
         display-buffer-use-some-window)))
 
+(setq-default indent-tabs-mode nil)
+
 ;; (setopt
 ;;  display-buffer-base-action
 ;;  '((display-buffer-reuse-window display-buffer-same-window display-buffer-in-previous-window)
@@ -34,6 +36,8 @@
                          ("org" . "https://orgmode.org/elpa/")
                          ("elpa" . "https://elpa.gnu.org/packages/")))
 
+
+;; NOTE: if package fails to install, run `package-refresh-contents` and then try again
 (package-initialize)
 (unless package-archive-contents (package-refresh-contents))
 
@@ -47,7 +51,6 @@
 
 ;; (require 'cl-lib)
 
-
 (require 'desktop)
 (desktop-save-mode 1)
 (defun my-desktop-save ()
@@ -58,6 +61,7 @@
 (add-hook 'auto-save-hook 'my-desktop-save)
 
       
+(use-package transpose-frame)
 
 ;; (use-package dashboard
 ;;   :ensure t
@@ -167,6 +171,36 @@
                          :align t
                          :size 0.33)))
   (shackle-mode))
+
+; (setf dired-kill-when-opening-new-dired-buffer t)
+;; (setq delete-by-moving-to-trash t)
+;; (setq load-prefer-newer t)
+;; (put 'dired-find-alternate-file 'disabled nil)
+;; (add-hook dired-mode-hook (lambda()
+;; 			    (local-set-key (kbd "<mouse-2>") #'dired-find-alternate-file)
+;; 			    (local-set-key (kbd "RET") #'dired-find-alternate-file)
+;; 			    (local-set-key (kbd "^")
+;; 					   (lambda () (interactive) (find-alternate-file "..")))))
+
+(defun open-project ()
+  (interactive)
+  (projectile-dired)
+  (magit-status))
+
+(use-package projectile
+  :diminish projectile-mode
+  :config (projectile-mode)
+  :custom ((projectile-completion-system 'helm))
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :init
+  (setq projectile-project-search-path '("~/repositories"))
+  (setq projectile-switch-project-action #'open-project)
+  )
+
+(use-package helm-projectile
+  :ensure t
+  :init (helm-projectile-on))
 
 
 (require 'nerd-icons)
@@ -303,10 +337,127 @@
 ;; Improved help system
 ;; Look into the `helpful` packages
 
+;; (add-to-list 'org-entities-user
+;;             ;'(NAME LATEX MATH-MODE? HTML ASCII LATIN-1 UTF-8)
+;;              '("mapsto" "\\mapsto{}" t "&#8614;" "->" "->" "↦")
+;;              '("vdash" "\\vdash{}" t "&vdash;" "|-" "|-" "⊦"))
 
 ;; (use-package git-auto-commit-mode)
 ;; (setq-default gac-automatically-push-p t)
 
+(require 'org-capture)
+
+(global-set-key (kbd "C-c c") 'org-capture)
+
+(setq org-capture-templates
+      '(
+        ;; === MEETINGS ===
+	("m" "Meetings")
+
+        ;; 1:1 meetings -> one-on-ones.org, header is the date
+        ("m1" "Meeting: 1:1" entry
+         (file "~/docs/one-on-ones.org")
+         "* %u\n- %?")
+
+        ;; Kanban meeting -> meetings.org, under Kanban -> date
+        ("mk" "Meeting: Kanban" entry
+         (file+headline "~/docs/meetings.org" "Kanban")
+         "* %u\n- %?")
+
+        ;; Brainstorming meeting -> meetings.org, under Brainstorming -> date
+        ("mb" "Meeting: Brainstorming" entry
+         (file+headline "~/docs/meetings.org" "Brainstorming")
+         "* %u\n- %?")
+
+        ;; ClassEP Brainstorming -> meetings.org, under ClassEP Brainstorming -> date
+        ("mc" "Meeting: ClassEP Brainstorming" entry
+         (file+headline "~/docs/meetings.org" "ClassEP Brainstorming")
+         "* %u\n- %?")
+
+        ;; KSMS -> ksm.org, under date
+        ("ms" "Meeting: KSM" entry
+         (file "~/docs/ksm.org")
+         "* %u %?")
+
+        ;; Other meeting -> meetings.org, under a prompted header
+        ("mo" "Meeting: Other" entry
+         (file+headline "~/docs/meetings.org" "Other")
+         "* %u %?")
+
+        ;; === JOURNAL ===
+	("j" "Journal")
+
+        ;; Morning goals -> journal.org, under Goals -> date
+        ("jg" "Journal: Morning Goals" entry
+         (file+datetree "~/docs/journal.org")
+         "* Morning Goals\n- %?")
+
+        ;; End-of-day wrapup -> journal.org, under Wrap-up -> date
+        ("jw" "Journal: End-of-Day Wrap-up" entry
+         (file+datetree "~/docs/journal.org")
+         "* End-of-Day Wrap-up\n- %?")
+
+        ;; === TODO ===
+        ;; Todo -> todo.org, under date
+        ("t" "Todo" entry
+         (file+datetree "~/docs/todo.org")
+         "* TODO %?")
+
+        ;; === OTHER NOTES ===
+	("n" "Notes")
+
+        ;; Other notes -> misc.org, under a chosen header or prompt
+        ("nm" "Note: MATLAB Coder" entry
+         (file+headline "~/docs/misc.org" "MATLAB Coder")
+         "* %?")
+        ("nc" "Note: C++" entry
+         (file+headline "~/docs/misc.org" "C++")
+         "* %?")
+        ("nd" "Note: Dev Processes" entry
+         (file+headline "~/docs/misc.org" "Dev Processes")
+         "* %?")
+        ("nl" "Note: Linux" entry
+         (file+headline "~/docs/misc.org" "Linux")
+         "* %?")
+        ("no" "Note: Other" entry
+         (file+headline "~/docs/misc.org" "Other")
+         "* %?")
+        ))
+
+
+
+(use-package org-super-agenda)
+(org-super-agenda-mode)
+(setq org-agenda-files '("~/docs"))
+(setq org-agenda-window-setup 'current-window)
+(setq org-agenda-tags-column -120)
+(setq org-super-agenda-groups
+      '((:name "Today"
+	       :time-grid t)
+	(:name "Gecks"
+	       :and (:not (:todo "DONE") :not (:todo "CANCELLED") :tag "gecks"))
+	(:name "General"
+	       :and (:not (:todo "DONE") :not (:todo "CANCELLED") :not (:tag "gecks") :not (:tag "learning")))
+	(:name "Learning (Active)"
+	       :and (:todo "TODO" :tag "learning" :not (:tag "backlog")))
+	(:name "Learning (Backlog)"
+	       :and (:todo "TODO" :tag "learning" :tag "backlog"))
+	)
+      )
+
+(defun org-agenda-and-todo ()
+  "Display the weekly org-agenda and all TODOs."
+  (interactive)
+  (org-agenda nil "n"))
+
+(global-set-key (kbd "C-c t") 'org-agenda-and-todo)
+(setq initial-buffer-choice 'org-agenda-and-todo)
+
+
+(use-package magit
+  :ensure t)
+
+;; (org-agenda nil "n")
 
 ;;  :config
 ;;  (setq org-ellipsis " ..."
@@ -446,7 +597,8 @@
  '(jdee-db-spec-breakpoint-face-colors (cons "#1c1f2b" "#676E95"))
  '(message-fill-column 100)
  '(objed-cursor-color "#ff5370")
- '(package-selected-packages nil)
+ '(package-selected-packages
+   '(treemacs git-auto-commit-mode which-key rainbow-delimiters doom-themes doom-modeline all-the-icons ivy-rich counsel use-package))
  '(pdf-view-midnight-colors (cons "#EEFFFF" "#292D3E"))
  '(rustic-ansi-faces
    ["#292D3E" "#ff5370" "#c3e88d" "#ffcb6b" "#82aaff" "#c792ea" "#89DDFF" "#EEFFFF"])
