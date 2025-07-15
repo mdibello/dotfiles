@@ -18,9 +18,9 @@
 
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
-(setq display-buffer-base-action
-     '((display-buffer-reuse-window
-        display-buffer-use-some-window)))
+;; (setq display-buffer-base-action
+;;      '((display-buffer-reuse-window
+;;         display-buffer-use-some-window)))
 
 (setq-default indent-tabs-mode nil)
 
@@ -456,6 +456,8 @@
 
 (use-package magit
   :ensure t)
+
+(global-set-key (kbd "C-x g") 'magit-status)
 
 ;; (org-agenda nil "n")
 
