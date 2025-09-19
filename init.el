@@ -16,6 +16,8 @@
 (set-face-attribute 'default nil :font "Fira Code Retina" :height 130)
 ;; (set-face-attribute 'default nil :height 120)
 
+(setq sgml-basic-offset 4)
+
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
 ;; (setq display-buffer-base-action
@@ -191,8 +193,8 @@
   :diminish projectile-mode
   :config (projectile-mode)
   :custom ((projectile-completion-system 'helm))
-  :bind-keymap
-  ("C-c p" . projectile-command-map)
+  ;; :bind-keymap
+  ;; ("C-c p" . projectile-command-map)
   :init
   (setq projectile-project-search-path '("~/repositories"))
   (setq projectile-switch-project-action #'open-project)
@@ -450,8 +452,8 @@
   (interactive)
   (org-agenda nil "n"))
 
-(global-set-key (kbd "C-c t") 'org-agenda-and-todo)
-(setq initial-buffer-choice 'org-agenda-and-todo)
+;; (global-set-key (kbd "C-c t") 'org-agenda-and-todo)
+;; (setq initial-buffer-choice 'org-agenda-and-todo)
 
 
 (use-package magit
@@ -578,6 +580,57 @@
 ;; (add-hook 'emacs-startup-hook #'load-perforce-and-open-p4-files)
 
 
+(use-package gnu-elpa-keyring-update)
+
+;; AUCTeX: the LaTeX major mode
+(use-package tex
+  :ensure auctex
+  :defer t
+  :hook ((LaTeX-mode . visual-line-mode)
+         (LaTeX-mode . LaTeX-math-mode)
+         (LaTeX-mode . reftex-mode))
+  :config
+  ;; Enable parsing of local settings
+  (setq TeX-parse-self t)
+  (setq TeX-auto-save t)
+
+  ;; Always ask for the master file if multiple .tex files exist
+  (setq-default TeX-master nil)
+
+  ;; Use pdf-tools for preview inside Emacs
+  (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+        TeX-source-correlate-start-server t)
+
+  ;; Use latexmk for compilation
+  (setq TeX-command-default "LatexMk")
+  (add-to-list 'TeX-command-list
+               '("LatexMk" "latexmk -pdf -interaction=nonstopmode -synctex=1 %s"
+                 TeX-run-TeX nil t :help "Run LatexMk")))
+
+;; RefTeX: cross-references, bibliographies, and TOC navigation
+(use-package reftex
+  :after tex
+  :hook (LaTeX-mode . reftex-mode)
+  :config
+  (setq reftex-plug-into-AUCTeX t))
+
+;; Optional: pdf-tools for integrated PDF viewing
+(use-package pdf-tools
+  :magic ("%PDF" . pdf-view-mode)
+  :config
+  (pdf-tools-install)
+  ;; SyncTeX forward/backward search
+  (setq TeX-view-program-selection '((output-pdf "PDF Tools")))
+  (setq TeX-source-correlate-mode t)
+  (setq TeX-source-correlate-start-server t))
+
+;; Company-mode backend for LaTeX symbols
+;; (use-package company-auctex
+;;   :after (company tex)
+;;   :config
+;;   (company-auctex-init))
+
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -593,6 +646,7 @@
  '(exwm-floating-border-color "#232635")
  '(fci-rule-color "#676E95")
  '(gdb-non-stop-setting nil t)
+ '(git-commit-summary-max-length 100)
  '(highlight-tail-colors ((("#383f45") . 0) (("#323e51") . 20)))
  '(jdee-db-active-breakpoint-face-colors (cons "#1c1f2b" "#c792ea"))
  '(jdee-db-requested-breakpoint-face-colors (cons "#1c1f2b" "#c3e88d"))
@@ -600,10 +654,13 @@
  '(message-fill-column 100)
  '(objed-cursor-color "#ff5370")
  '(package-selected-packages
-   '(treemacs git-auto-commit-mode which-key rainbow-delimiters doom-themes doom-modeline all-the-icons ivy-rich counsel use-package))
+   '(all-the-icons auctex company-auctex counsel doom-modeline doom-themes git-auto-commit-mode
+                   gnu-elpa-keyring-update ivy-rich rainbow-delimiters treemacs use-package
+                   which-key))
  '(pdf-view-midnight-colors (cons "#EEFFFF" "#292D3E"))
  '(rustic-ansi-faces
    ["#292D3E" "#ff5370" "#c3e88d" "#ffcb6b" "#82aaff" "#c792ea" "#89DDFF" "#EEFFFF"])
+ '(sb-mlint-locations '((vdi-ahddp-012 . "/local-ssd/mdibello/g3791790/matlab/")))
  '(vc-annotate-background "#292D3E")
  '(vc-annotate-color-map
    (list (cons 20 "#c3e88d") (cons 40 "#d7de81") (cons 60 "#ebd476") (cons 80 "#ffcb6b")
