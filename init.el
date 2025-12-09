@@ -53,14 +53,14 @@
 
 ;; (require 'cl-lib)
 
-(require 'desktop)
-(desktop-save-mode 1)
-(defun my-desktop-save ()
-  (interactive)
-  ;; Don't call desktop-save-in-desktop-dir, as it prints a message.
-  (if (eq (desktop-owner) (emacs-pid))
-      (desktop-save desktop-dirname)))
-(add-hook 'auto-save-hook 'my-desktop-save)
+;; (require 'desktop)
+;; (desktop-save-mode 1)
+;; (defun my-desktop-save ()
+;;   (interactive)
+;;   ;; Don't call desktop-save-in-desktop-dir, as it prints a message.
+;;   (if (eq (desktop-owner) (emacs-pid))
+;;       (desktop-save desktop-dirname)))
+;; (add-hook 'auto-save-hook 'my-desktop-save)
 
       
 (use-package transpose-frame)
@@ -80,7 +80,7 @@
   (treemacs-is-never-other-window t)
   (treemacs-expand-after-init t)
   (treemacs-position 'left))
-(add-hook 'emacs-startup-hook 'treemacs)
+;; (add-hook 'emacs-startup-hook 'treemacs)
 
 ;; Sidebar with open buffers
 (setq
@@ -106,7 +106,8 @@
   :config
   ;; Open sidebar on Emacs start
   ;;(define-key ibuffer-sidebar-mode-map [mouse-1] #'ibuffer-sidebar-visit-buffer)
-  (add-hook 'emacs-startup-hook #'ibuffer-sidebar-toggle-sidebar))
+  ;; (add-hook 'emacs-startup-hook #'ibuffer-sidebar-toggle-sidebar)
+  )
 
 (with-eval-after-load 'ibuffer-sidebar
   (add-hook 'ibuffer-sidebar-mode-hook
@@ -353,6 +354,26 @@
 
 (setq org-capture-templates
       '(
+        ;; === GECKS ===
+        ("g" "Geck TODO" entry
+         (file "~/docs/gecks.org")
+         "* TODO %^{Task name}
+:PROPERTIES:
+:EFFORT: %^{Time estimate (hours)} :gecks:
+:END:
+  - [ ] Investigate geck
+  - [ ] Implement solution
+  - [ ] Perform initial qualification
+  - [ ] Run test suite
+  - [ ] Create reviewboard
+  - [ ] Review test results
+  - [ ] Address test results
+  - [ ] Address reviewboard feedback
+  - [ ] Re-run qualification
+  - [ ] Update reviewboard
+  - [ ] Submit
+")
+        
         ;; === MEETINGS ===
 	("m" "Meetings")
 
@@ -426,7 +447,8 @@
          "* %?")
         ))
 
-
+(setq org-enforce-todo-dependencies t)
+(setq org-hierarchical-todo-statistics t)
 
 (use-package org-super-agenda)
 (org-super-agenda-mode)
@@ -438,8 +460,10 @@
 	       :time-grid t)
 	(:name "Gecks"
 	       :and (:not (:todo "DONE") :not (:todo "CANCELLED") :tag "gecks"))
-	(:name "General"
-	       :and (:not (:todo "DONE") :not (:todo "CANCELLED") :not (:tag "gecks") :not (:tag "learning")))
+	(:name "General (Active)"
+	       :and (:not (:todo "DONE") :not (:todo "CANCELLED") :not (:tag "gecks") :not (:tag "learning") :not (:tag "backlog")))
+	(:name "General (Backlog)"
+	       :and (:not (:todo "DONE") :not (:todo "CANCELLED") :not (:tag "gecks") :not (:tag "learning") :tag "backlog"))
 	(:name "Learning (Active)"
 	       :and (:todo "TODO" :tag "learning" :not (:tag "backlog")))
 	(:name "Learning (Backlog)"
@@ -451,6 +475,52 @@
   "Display the weekly org-agenda and all TODOs."
   (interactive)
   (org-agenda nil "n"))
+
+(defun my/org-add-clock-for-last-hours (hours)
+  "For the TODO heading at point, add a CLOCK entry from HOURS hours ago to now."
+  (interactive "nHours: ")
+  (unless (derived-mode-p 'org-mode)
+    (user-error "Not in org-mode"))
+  (save-excursion
+    (org-back-to-heading t)
+    (let* ((now (current-time))
+           (start (time-subtract now (seconds-to-time (floor (* hours 3600)))))
+           (start-str (format-time-string (org-time-stamp-format t t) start))
+           (end-str   (format-time-string (org-time-stamp-format t t) now))
+           (duration  (org-duration-from-minutes
+                       (round (/ (float-time (time-subtract now start)) 60.0)))))
+      ;; Ensure we are on a headline
+      (unless (org-before-first-heading-p)
+        ;; Ensure CLOCK drawer exists at this entry
+        (org-back-to-heading t)
+        (org-end-of-meta-data)
+        (let ((drawer-pos (save-excursion
+                            (org-log-beginning t))))
+          (unless drawer-pos
+            ;; Insert a LOGBOOK drawer if none exists; org will reuse it for CLOCK
+            (save-excursion
+              (org-back-to-heading t)
+              (org-end-of-meta-data)
+              (insert ":LOGBOOK:\n:END:\n"))))
+        ;; Insert the CLOCK line at the right place
+        (save-excursion
+          (let ((logpos (or (save-excursion (org-log-beginning t))
+                            (progn
+                              (org-end-of-meta-data)
+                              (point)))))
+            (goto-char logpos)
+            ;; Move to just before :END:
+            (save-excursion
+              (re-search-forward "^[ \t]*:END:" (org-entry-end-position) t))
+            (re-search-forward "^[ \t]*:END:" (org-entry-end-position) t)
+            (beginning-of-line)
+            (open-line 1)
+            (insert (format "CLOCK: [[%s]]--[[%s]] =>  %s"
+                            start-str end-str duration))))))))
+
+;; Optional convenience: bind to a key in org-mode
+(with-eval-after-load 'org
+  (define-key org-mode-map (kbd "C-c C-x H") #'my/org-add-clock-for-last-hours))
 
 ;; (global-set-key (kbd "C-c t") 'org-agenda-and-todo)
 ;; (setq initial-buffer-choice 'org-agenda-and-todo)
@@ -594,9 +664,6 @@
   (setq TeX-parse-self t)
   (setq TeX-auto-save t)
 
-  ;; Always ask for the master file if multiple .tex files exist
-  (setq-default TeX-master nil)
-
   ;; Use pdf-tools for preview inside Emacs
   (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
         TeX-source-correlate-start-server t)
@@ -604,7 +671,7 @@
   ;; Use latexmk for compilation
   (setq TeX-command-default "LatexMk")
   (add-to-list 'TeX-command-list
-               '("LatexMk" "latexmk -pdf -interaction=nonstopmode -synctex=1 %s"
+               '("LatexMk" "latexmk -lualatex -pdf -interaction=nonstopmode -synctex=1 %s"
                  TeX-run-TeX nil t :help "Run LatexMk")))
 
 ;; RefTeX: cross-references, bibliographies, and TOC navigation
